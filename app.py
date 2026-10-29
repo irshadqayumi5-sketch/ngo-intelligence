@@ -96,6 +96,17 @@ def load_indicator_registry():
         for col in INDICATOR_COLUMNS:
             if col not in df.columns:
                 df[col] = pd.NA
+        # Streamlit data_editor requires the configured TextColumn to match
+        # the underlying pandas dtype. CSV columns containing only blanks
+        # may be inferred as float64; normalize all registry text fields.
+        text_cols = [
+            "Indicator_ID", "Indicator_Name", "Definition", "Unit", "Direction",
+            "Reporting_Period", "Responsible_Team", "Due_Date", "Status", "Notes"
+        ]
+        for col in text_cols:
+            df[col] = df[col].fillna("").astype("string")
+        for col in ["Baseline", "Target", "Actual"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
         return df[INDICATOR_COLUMNS]
     except Exception as exc:
         st.warning(f"Could not load the saved indicator registry: {exc}")
@@ -1334,6 +1345,20 @@ else:
         if "v22_indicator_registry" not in st.session_state:
             st.session_state["v22_indicator_registry"] = load_indicator_registry()
         current_registry = st.session_state["v22_indicator_registry"].copy()
+        # Enforce stable dtypes before st.data_editor: an all-empty text
+        # column can otherwise be inferred as float and conflict with TextColumn.
+        registry_text_cols = [
+            "Indicator_ID", "Indicator_Name", "Definition", "Unit", "Direction",
+            "Reporting_Period", "Responsible_Team", "Due_Date", "Status", "Notes"
+        ]
+        for text_col in registry_text_cols:
+            if text_col not in current_registry.columns:
+                current_registry[text_col] = ""
+            current_registry[text_col] = current_registry[text_col].fillna("").astype("string")
+        for numeric_col in ["Baseline", "Target", "Actual"]:
+            if numeric_col not in current_registry.columns:
+                current_registry[numeric_col] = pd.NA
+            current_registry[numeric_col] = pd.to_numeric(current_registry[numeric_col], errors="coerce")
         if current_registry.empty:
             blank_row = {c: "" for c in INDICATOR_COLUMNS}
             for numeric_col in ["Baseline", "Target", "Actual"]:
