@@ -1,2 +1,2 @@
 # ngo-intelligence
-: AI-powered NGO Reporting and Analytics System انت
+AI-powered NGO Reporting and Analytics System 
