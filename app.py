@@ -272,10 +272,35 @@ def build_action_plan(insights):
 
 
 ACTION_PLAN_FILE = APP_DIR / "data" / "management_action_plan_v18_0.csv"
+DELETED_ACTIONS_FILE = APP_DIR / "data" / "deleted_management_action_ids.csv"
+
+def load_deleted_action_ids():
+    """Return Action_ID values explicitly deleted by the user."""
+    if not DELETED_ACTIONS_FILE.exists():
+        return set()
+    try:
+        deleted = pd.read_csv(DELETED_ACTIONS_FILE, dtype=str).fillna("")
+        if "Action_ID" not in deleted.columns:
+            return set()
+        return set(deleted["Action_ID"].astype(str).str.strip())
+    except Exception:
+        return set()
+
+def record_deleted_action_id(action_id):
+    """Persist a deletion marker so generated defaults are not recreated on rerun."""
+    DELETED_ACTIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    deleted_ids = load_deleted_action_ids()
+    deleted_ids.add(str(action_id).strip())
+    pd.DataFrame({"Action_ID": sorted(deleted_ids)}).to_csv(
+        DELETED_ACTIONS_FILE, index=False, encoding="utf-8-sig"
+    )
 
 def load_persistent_action_plan(insights):
-    """Load the local action register and append newly generated insight areas without overwriting edits."""
+    """Load saved actions, append new defaults, and respect explicit deletion markers."""
+    deleted_ids = load_deleted_action_ids()
     generated = build_action_plan(insights)
+    if not generated.empty:
+        generated = generated[~generated["Action_ID"].astype(str).isin(deleted_ids)].copy()
     if ACTION_PLAN_FILE.exists():
         try:
             saved = pd.read_csv(ACTION_PLAN_FILE).fillna("")
@@ -1116,6 +1141,7 @@ else:
             if st.button("Delete selected action", type="secondary", disabled=(typed_delete_id.strip() != str(selected_delete_id)), key="v22_0_delete_action_button"):
                 try:
                     remaining_actions = edited_actions[edited_actions["Action_ID"].astype(str) != str(selected_delete_id)].copy()
+                    record_deleted_action_id(selected_delete_id)
                     save_action_plan(remaining_actions)
                     st.success(f"Deleted {selected_delete_id}. {len(remaining_actions):,} action rows remain and have been saved.")
                     st.rerun()
