@@ -96,17 +96,6 @@ def load_indicator_registry():
         for col in INDICATOR_COLUMNS:
             if col not in df.columns:
                 df[col] = pd.NA
-        # Streamlit data_editor requires the configured TextColumn to match
-        # the underlying pandas dtype. CSV columns containing only blanks
-        # may be inferred as float64; normalize all registry text fields.
-        text_cols = [
-            "Indicator_ID", "Indicator_Name", "Definition", "Unit", "Direction",
-            "Reporting_Period", "Responsible_Team", "Due_Date", "Status", "Notes"
-        ]
-        for col in text_cols:
-            df[col] = df[col].fillna("").astype("string")
-        for col in ["Baseline", "Target", "Actual"]:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
         return df[INDICATOR_COLUMNS]
     except Exception as exc:
         st.warning(f"Could not load the saved indicator registry: {exc}")
@@ -1083,15 +1072,55 @@ else:
             st.dataframe(queue, use_container_width=True, hide_index=True)
             st.download_button("Download early-warning queue (CSV)", queue.to_csv(index=False).encode("utf-8-sig"), file_name=f"v20_0_early_warning_queue_{datetime.now():%Y%m%d}.csv", mime="text/csv")
         st.markdown("#### Management action register")
-        st.caption("Edits remain session-only until you save them. Saved actions are stored locally in data/management_action_plan_v18_0.csv on this computer.")
-        edited_actions = st.data_editor(action_plan, use_container_width=True, hide_index=True, num_rows="dynamic", key="v20_0_early_warning_action_register")
-        if st.button("Save management action register", type="primary"):
-            try:
-                save_action_plan(edited_actions)
-                st.success(f"Saved {len(edited_actions):,} action rows to {ACTION_PLAN_FILE}.")
-            except Exception as exc:
-                st.error(f"Could not save the action register: {exc}")
-        st.download_button("Export action register (CSV)", edited_actions.to_csv(index=False).encode("utf-8-sig"), file_name=f"v20_0_action_register_{datetime.now():%Y%m%d}.csv", mime="text/csv")
+        st.caption("Edit cells directly, then save. To remove a row, select its Action_ID below and confirm deletion. On Streamlit Community Cloud, CSV storage may be temporary and should not be treated as a durable database.")
+        edited_actions = st.data_editor(
+            action_plan,
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            key="v22_0_early_warning_action_register",
+        )
+        save_col, export_col = st.columns([1, 1])
+        with save_col:
+            if st.button("Save management action register", type="primary", key="v22_0_save_action_register"):
+                try:
+                    save_action_plan(edited_actions)
+                    st.success(f"Saved {len(edited_actions):,} action rows to {ACTION_PLAN_FILE}.")
+                except Exception as exc:
+                    st.error(f"Could not save the action register: {exc}")
+        with export_col:
+            st.download_button(
+                "Export action register (CSV)",
+                edited_actions.to_csv(index=False).encode("utf-8-sig"),
+                file_name=f"v22_0_action_register_{datetime.now():%Y%m%d}.csv",
+                mime="text/csv",
+                key="v22_0_export_action_register",
+            )
+
+        st.markdown("##### Delete an action")
+        if edited_actions.empty:
+            st.info("There are no action rows to delete.")
+        elif "Action_ID" not in edited_actions.columns:
+            st.error("Deletion is unavailable because the Action_ID column is missing.")
+        else:
+            delete_options = edited_actions["Action_ID"].astype(str).tolist()
+            selected_delete_id = st.selectbox(
+                "Select the Action_ID to delete",
+                options=delete_options,
+                key="v22_0_delete_action_id",
+            )
+            typed_delete_id = st.text_input(
+                f"Type {selected_delete_id} to confirm deletion",
+                key="v22_0_confirm_delete_action_id",
+            )
+            if st.button("Delete selected action", type="secondary", disabled=(typed_delete_id.strip() != str(selected_delete_id)), key="v22_0_delete_action_button"):
+                try:
+                    remaining_actions = edited_actions[edited_actions["Action_ID"].astype(str) != str(selected_delete_id)].copy()
+                    save_action_plan(remaining_actions)
+                    st.success(f"Deleted {selected_delete_id}. {len(remaining_actions):,} action rows remain and have been saved.")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Could not delete the selected action: {exc}")
 
     elif section == "Insights & Action Plan":
         st.subheader("Evidence-based Insights & Management Action Plan")
@@ -1345,20 +1374,6 @@ else:
         if "v22_indicator_registry" not in st.session_state:
             st.session_state["v22_indicator_registry"] = load_indicator_registry()
         current_registry = st.session_state["v22_indicator_registry"].copy()
-        # Enforce stable dtypes before st.data_editor: an all-empty text
-        # column can otherwise be inferred as float and conflict with TextColumn.
-        registry_text_cols = [
-            "Indicator_ID", "Indicator_Name", "Definition", "Unit", "Direction",
-            "Reporting_Period", "Responsible_Team", "Due_Date", "Status", "Notes"
-        ]
-        for text_col in registry_text_cols:
-            if text_col not in current_registry.columns:
-                current_registry[text_col] = ""
-            current_registry[text_col] = current_registry[text_col].fillna("").astype("string")
-        for numeric_col in ["Baseline", "Target", "Actual"]:
-            if numeric_col not in current_registry.columns:
-                current_registry[numeric_col] = pd.NA
-            current_registry[numeric_col] = pd.to_numeric(current_registry[numeric_col], errors="coerce")
         if current_registry.empty:
             blank_row = {c: "" for c in INDICATOR_COLUMNS}
             for numeric_col in ["Baseline", "Target", "Actual"]:
