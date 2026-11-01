@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 from io import BytesIO
 import hashlib
 import json
@@ -638,8 +638,8 @@ def build_audit_manifest(source, full_df, filtered_df, filter_summary):
     scores = valid_scores(filtered_df)
     manifest = {
         "Application": "AI_NGO Reporting System",
-        "Version": "17.0",
-        "Report generated (local time)": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "Version": "22.0",
+        "Report generated (local time)": datetime.now(timezone(timedelta(hours=4, minutes=30))).isoformat(timespec="seconds"),
         "Source description": str(source),
         "Source dataset SHA-256 fingerprint": dataframe_fingerprint(full_df),
         "Source row count": int(len(full_df)),
