@@ -359,7 +359,7 @@ def word_report(df, source, quality_df, insights, action_plan, filter_summary):
     section.top_margin = Inches(.65)
     section.bottom_margin = Inches(.65)
     doc.add_heading("Beneficiary Analysis and Management Insights", 0)
-    doc.add_paragraph(f"AI_NGO Reporting System V18.0 | Generated: {datetime.now():%d %B %Y, %H:%M}")
+    doc.add_paragraph(f"AI NGO Intelligence V22.0 | Generated: {datetime.now(timezone(timedelta(hours=4, minutes=30))):%d %B %Y, %H:%M} (Afghanistan time)")
     doc.add_paragraph(f"Data source: {source}")
     doc.add_paragraph(f"Filters applied: {filter_summary}")
     scores = valid_scores(df)
@@ -556,7 +556,7 @@ def pdf_report(df, source, quality_df, insights, action_plan, filter_summary, pr
     styles.add(ParagraphStyle(name="SmallBody", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT, spaceAfter=3))
     styles.add(ParagraphStyle(name="Tiny", parent=styles["BodyText"], fontSize=6.5, leading=8))
     story = [Paragraph("AI_NGO Reporting System V18.0 — Management Brief", styles["Title"]),
-             Paragraph(f"Generated: {datetime.now():%d %B %Y, %H:%M} | Source: {escape(str(source))}", styles["SmallBody"]),
+             Paragraph(f"Generated: {datetime.now(timezone(timedelta(hours=4, minutes=30))):%d %B %Y, %H:%M} (Afghanistan time) | Source: {escape(str(source))}", styles["SmallBody"]),
              Paragraph("Filters: " + escape(filter_summary), styles["SmallBody"]), Spacer(1, 4*mm)]
     scores = valid_scores(df)
     low_n = int(scores.isin(LOW_SCORE_VALUES).sum()) if len(scores) else 0
