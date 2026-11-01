@@ -949,7 +949,7 @@ else:
     st.sidebar.caption("Date filter unavailable: no valid dates in the selected province/activity records.")
 
 filter_summary = f"Provinces: {', '.join(selected_provinces) if selected_provinces else 'none'}; Activities: {', '.join(selected_activities) if selected_activities else 'none'}"
-quality = quality_checks(filtered)
+quality = quality_checks(df)
 province_table = grouped_analysis(filtered, "Province")
 activity_table = grouped_analysis(filtered, "Activity")
 insights = make_insights(filtered, province_table, activity_table)
