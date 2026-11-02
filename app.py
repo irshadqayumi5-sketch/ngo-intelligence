@@ -555,7 +555,7 @@ def pdf_report(df, source, quality_df, insights, action_plan, filter_summary, pr
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name="SmallBody", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT, spaceAfter=3))
     styles.add(ParagraphStyle(name="Tiny", parent=styles["BodyText"], fontSize=6.5, leading=8))
-    story = [Paragraph("AI_NGO Reporting System V18.0 — Management Brief", styles["Title"]),
+    story = [Paragraph("AI NGO Intelligence V22.0 — Management Brief — Management Brief", styles["Title"]),
              Paragraph(f"Generated: {datetime.now(timezone(timedelta(hours=4, minutes=30))):%d %B %Y, %H:%M} (Afghanistan time) | Source: {escape(str(source))}", styles["SmallBody"]),
              Paragraph("Filters: " + escape(filter_summary), styles["SmallBody"]), Spacer(1, 4*mm)]
     scores = valid_scores(df)
