@@ -548,64 +548,310 @@ def pdf_report(df, source, quality_df, insights, action_plan, filter_summary, pr
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import mm
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table,
+        TableStyle, KeepTogether
+    )
     from xml.sax.saxutils import escape
+
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=14*mm, leftMargin=14*mm, topMargin=12*mm, bottomMargin=12*mm)
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=14 * mm,
+        leftMargin=14 * mm,
+        topMargin=12 * mm,
+        bottomMargin=12 * mm
+    )
+
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="SmallBody", parent=styles["BodyText"], fontSize=8, leading=10, alignment=TA_LEFT, spaceAfter=3))
-    styles.add(ParagraphStyle(name="Tiny", parent=styles["BodyText"], fontSize=6.5, leading=8))
-    story = [Paragraph("AI NGO Intelligence V22.0 — Management Brief — Management Brief", styles["Title"]),
-             Paragraph(f"Generated: {datetime.now(timezone(timedelta(hours=4, minutes=30))):%d %B %Y, %H:%M} (Afghanistan time) | Source: {escape(str(source))}", styles["SmallBody"]),
-             Paragraph("Filters: " + escape(filter_summary), styles["SmallBody"]), Spacer(1, 4*mm)]
+
+    styles.add(ParagraphStyle(
+        name="SmallBody",
+        parent=styles["BodyText"],
+        fontSize=8,
+        leading=11,
+        alignment=TA_LEFT,
+        spaceAfter=4
+    ))
+
+    styles.add(ParagraphStyle(
+        name="Tiny",
+        parent=styles["BodyText"],
+        fontSize=7,
+        leading=9,
+        wordWrap="LTR"
+    ))
+
+    styles.add(ParagraphStyle(
+        name="TableHeader",
+        parent=styles["BodyText"],
+        fontSize=7,
+        leading=9,
+        textColor=colors.white,
+        fontName="Helvetica-Bold"
+    ))
+
+    story = [
+        Paragraph(
+            "AI NGO Intelligence V22.0 — Management Brief",
+            styles["Title"]
+        ),
+        Paragraph(
+            f"Generated: {datetime.now(timezone(timedelta(hours=4, minutes=30))):%d %B %Y, %H:%M} "
+            f"(Afghanistan time) | Source: {escape(str(source))}",
+            styles["SmallBody"]
+        ),
+        Paragraph(
+            "Filters: " + escape(str(filter_summary)),
+            styles["SmallBody"]
+        ),
+        Spacer(1, 4 * mm)
+    ]
+
+    # Executive statistics
     scores = valid_scores(df)
     low_n = int(scores.isin(LOW_SCORE_VALUES).sum()) if len(scores) else 0
     low_pct = low_n / len(scores) * 100 if len(scores) else 0
-    summary = [["Selected records", "Valid scores", "Mean satisfaction", "Low scores", "Low-satisfaction rate"],
-               [f"{len(df):,}", f"{len(scores):,}", f"{scores.mean():.2f}/5" if len(scores) else "N/A", f"{low_n:,}", f"{low_pct:.1f}%" if len(scores) else "N/A"]]
-    t = Table(summary, colWidths=[36*mm]*5)
-    t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#17365D")),("TEXTCOLOR",(0,0),(-1,0),colors.white),("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("FONTSIZE",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.4,colors.grey),("ALIGN",(0,0),(-1,-1),"CENTER"),("PADDING",(0,0),(-1,-1),5)]))
-    story += [t, Spacer(1, 5*mm), Paragraph("Executive interpretation", styles["Heading1"])]
+
+    summary = [
+        [
+            "Selected records",
+            "Valid scores",
+            "Mean satisfaction",
+            "Low scores",
+            "Low-satisfaction rate"
+        ],
+        [
+            f"{len(df):,}",
+            f"{len(scores):,}",
+            f"{scores.mean():.2f}/5" if len(scores) else "N/A",
+            f"{low_n:,}",
+            f"{low_pct:.1f}%" if len(scores) else "N/A"
+        ]
+    ]
+
+    t = Table(summary, colWidths=[46 * mm] * 5)
+    t.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17365D")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("PADDING", (0, 0), (-1, -1), 6)
+    ]))
+
+    story += [
+        t,
+        Spacer(1, 5 * mm),
+        Paragraph("Executive interpretation", styles["Heading1"])
+    ]
+
     if len(scores):
-        story.append(Paragraph(f"{low_n:,} of {len(scores):,} valid satisfaction scores ({low_pct:.1f}%) are low (1–2). The mean score is {scores.mean():.2f}/5. These descriptive figures do not establish causes.", styles["SmallBody"]))
+        story.append(Paragraph(
+            f"{low_n:,} of {len(scores):,} valid satisfaction scores "
+            f"({low_pct:.1f}%) are low (1–2). "
+            f"The mean score is {scores.mean():.2f}/5. "
+            "These descriptive figures do not establish causes.",
+            styles["SmallBody"]
+        ))
     else:
-        story.append(Paragraph("No valid satisfaction scores are available; do not draw satisfaction conclusions until the source data is reviewed.", styles["SmallBody"]))
-    story.append(Paragraph("Priority ranking (descriptive screening only)", styles["Heading1"]))
+        story.append(Paragraph(
+            "No valid satisfaction scores are available; do not draw "
+            "satisfaction conclusions until the source data is reviewed.",
+            styles["SmallBody"]
+        ))
+
+    # Priority ranking
+    story.append(
+        Paragraph("Priority ranking (descriptive screening only)", styles["Heading1"])
+    )
+
     if priority_table.empty:
-        story.append(Paragraph("No group-level ranking could be calculated.", styles["SmallBody"]))
+        story.append(Paragraph(
+            "No group-level ranking could be calculated.",
+            styles["SmallBody"]
+        ))
     else:
-        headers = ["Type", "Group", "n", "Low n", "Low %", "Diff. pp", "Review level"]
-        data = [[Paragraph(escape(h), styles["Tiny"]) for h in headers]]
+        headers = [
+            "Type", "Group", "n", "Low n",
+            "Low %", "Diff. pp", "Review level"
+        ]
+
+        data = [[
+            Paragraph(escape(h), styles["TableHeader"])
+            for h in headers
+        ]]
+
         for _, r in priority_table.head(12).iterrows():
-            vals = [r["Group type"], r["Group"], str(r["Scored records"]), str(r["Low-score records"]), f'{r["Low-satisfaction rate (%)"]:.1f}', f'{r["Difference vs overall (pp)"]:.1f}', r["Review level"]]
-            data.append([Paragraph(escape(str(v)), styles["Tiny"]) for v in vals])
-        t = Table(data, colWidths=[20*mm,32*mm,13*mm,13*mm,17*mm,17*mm,43*mm], repeatRows=1)
-        t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#17365D")),("TEXTCOLOR",(0,0),(-1,0),colors.white),("GRID",(0,0),(-1,-1),0.35,colors.grey),("VALIGN",(0,0),(-1,-1),"TOP"),("PADDING",(0,0),(-1,-1),4)]))
-        story += [t, Spacer(1, 4*mm)]
-    story.append(Paragraph("Recommended actions", styles["Heading1"]))
+            vals = [
+                r["Group type"],
+                r["Group"],
+                str(r["Scored records"]),
+                str(r["Low-score records"]),
+                f'{r["Low-satisfaction rate (%)"]:.1f}',
+                f'{r["Difference vs overall (pp)"]:.1f}',
+                r["Review level"]
+            ]
+
+            data.append([
+                Paragraph(escape(str(v)), styles["Tiny"])
+                for v in vals
+            ])
+
+        t = Table(
+            data,
+            colWidths=[24 * mm, 43 * mm, 15 * mm, 17 * mm,
+                       20 * mm, 22 * mm, 48 * mm],
+            repeatRows=1,
+            splitByRow=1
+        )
+
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17365D")),
+            ("GRID", (0, 0), (-1, -1), 0.35, colors.grey),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (2, 1), (5, -1), "CENTER"),
+            ("PADDING", (0, 0), (-1, -1), 5)
+        ]))
+
+        story += [t, Spacer(1, 4 * mm)]
+
+    # Recommended actions
+    story.append(
+        Paragraph("Recommended actions", styles["Heading1"])
+    )
+
     for item in insights[:8]:
-        story.append(Paragraph(f"<b>{escape(str(item['Priority']))} — {escape(str(item['Area']))}</b>: {escape(str(item['Finding']))} Recommended action: {escape(str(item['Recommended action']))} Evidence: {escape(str(item['Evidence / denominator']))}", styles["SmallBody"]))
-    story.append(Paragraph("Action register snapshot", styles["Heading1"]))
+        story.append(Paragraph(
+            f"<b>{escape(str(item['Priority']))} — "
+            f"{escape(str(item['Area']))}</b>: "
+            f"{escape(str(item['Finding']))} "
+            f"<b>Recommended action:</b> "
+            f"{escape(str(item['Recommended action']))} "
+            f"<b>Evidence:</b> "
+            f"{escape(str(item['Evidence / denominator']))}",
+            styles["SmallBody"]
+        ))
+
+    # Management action register
+    story.append(
+        Paragraph("Management Action Register", styles["Heading1"])
+    )
+
     if action_plan.empty:
-        story.append(Paragraph("No action rows available.", styles["SmallBody"]))
+        story.append(Paragraph(
+            "No action rows available.",
+            styles["SmallBody"]
+        ))
     else:
-        data = [[Paragraph(escape(x), styles["Tiny"]) for x in ["Action ID", "Priority", "Area", "Due date", "Status", "Owner"]]]
+        headers = [
+            "Action ID", "Priority", "Area",
+            "Due date", "Status", "Owner"
+        ]
+
+        data = [[
+            Paragraph(escape(h), styles["TableHeader"])
+            for h in headers
+        ]]
+
         for _, r in action_plan.head(15).iterrows():
-            data.append([Paragraph(escape(str(r.get(k, "")))[:180], styles["Tiny"]) for k in ["Action_ID", "Priority", "Area", "Due_Date", "Status", "Responsible_Role"]])
-        t = Table(data, colWidths=[28*mm,20*mm,48*mm,22*mm,24*mm,42*mm], repeatRows=1)
-        t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#17365D")),("TEXTCOLOR",(0,0),(-1,0),colors.white),("GRID",(0,0),(-1,-1),0.35,colors.grey),("VALIGN",(0,0),(-1,-1),"TOP"),("PADDING",(0,0),(-1,-1),4)]))
-        story += [t, Spacer(1, 4*mm)]
-    story.append(Paragraph("Data-quality check results", styles["Heading1"]))
-    qdata = [[Paragraph("Check", styles["Tiny"]), Paragraph("Result", styles["Tiny"])]]
+            values = [
+                r.get("Action_ID", ""),
+                r.get("Priority", ""),
+                r.get("Area", ""),
+                r.get("Due_Date", ""),
+                r.get("Status", ""),
+                r.get("Responsible_Role", "")
+            ]
+
+            data.append([
+                Paragraph(
+                    escape("" if v is None else str(v)),
+                    styles["Tiny"]
+                )
+                for v in values
+            ])
+
+        t = Table(
+            data,
+            colWidths=[
+                32 * mm,
+                20 * mm,
+                55 * mm,
+                25 * mm,
+                27 * mm,
+                86 * mm
+            ],
+            repeatRows=1,
+            splitByRow=1
+        )
+
+        t.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17365D")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ALIGN", (1, 1), (4, -1), "LEFT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6)
+        ]))
+
+        story += [t, Spacer(1, 4 * mm)]
+
+    # Data quality checks
+    story.append(
+        Paragraph("Data Quality Check Results", styles["Heading1"])
+    )
+
+    qdata = [[
+        Paragraph("Check", styles["TableHeader"]),
+        Paragraph("Result", styles["TableHeader"])
+    ]]
+
     for _, r in quality_df.iterrows():
-        qdata.append([Paragraph(escape(str(r["Check"])), styles["Tiny"]), Paragraph(escape(str(r["Result"])), styles["Tiny"])])
-    qt = Table(qdata, colWidths=[110*mm, 25*mm], repeatRows=1)
-    qt.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),colors.HexColor("#17365D")),("TEXTCOLOR",(0,0),(-1,0),colors.white),("GRID",(0,0),(-1,-1),0.3,colors.grey),("PADDING",(0,0),(-1,-1),3)]))
-    story += [qt, Spacer(1, 3*mm), Paragraph("Limitations: Group flags are descriptive and depend on sample size and selected filters. They do not prove causes, should not be used to deny assistance, and require validation with beneficiary feedback and programme records. Target/Actual values are not summed because repeated project totals may be double-counted.", styles["SmallBody"])]
+        qdata.append([
+            Paragraph(escape(str(r["Check"])), styles["Tiny"]),
+            Paragraph(escape(str(r["Result"])), styles["Tiny"])
+        ])
+
+    qt = Table(
+        qdata,
+        colWidths=[110 * mm, 25 * mm],
+        repeatRows=1,
+        splitByRow=1
+    )
+
+    qt.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#17365D")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.3, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("PADDING", (0, 0), (-1, -1), 4)
+    ]))
+
+    story += [
+        qt,
+        Spacer(1, 3 * mm),
+        Paragraph(
+            "Limitations: Group flags are descriptive and depend on sample "
+            "size and selected filters. They do not prove causes, should not "
+            "be used to deny assistance, and require validation with "
+            "beneficiary feedback and programme records. Target/Actual "
+            "values are not summed because repeated project totals may be "
+            "double-counted.",
+            styles["SmallBody"]
+        )
+    ]
+
     doc.build(story)
+
     return buffer.getvalue()
-
-
 def build_data_dictionary(df):
     """Return privacy-conscious column metadata without exposing beneficiary values."""
     rows = []
