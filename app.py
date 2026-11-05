@@ -1257,9 +1257,8 @@ def call_openai_data_question(api_key, model, question, payload):
     if not answer:
         raise RuntimeError("The API returned no text answer. Review the API response or try another supported model.")
     return answer
-
 with st.sidebar:
-   st.markdown("""<div style="padding:8px 4px 16px 4px;">
+    st.markdown("""<div style="padding:8px 4px 16px 4px;">
 <div style="font-size:.68rem;letter-spacing:.18em;font-weight:800;color:#8DE5DA;text-transform:uppercase;">Workspace</div>
 <div style="font-size:1.24rem;font-weight:820;color:white;letter-spacing:-.03em;margin-top:5px;">AI NGO <span style="color:#8DE5DA;">INTELLIGENCE</span></div>
 <div style="font-size:.77rem;color:#BBD0DE;margin-top:5px;">Monitoring &amp; management suite</div>
@@ -1273,6 +1272,7 @@ with st.sidebar:
 
 try:
     raw, source = load_workbook(uploaded)
+
 except Exception as exc:
     st.error(f"Unable to read the Excel workbook: {exc}")
     st.stop()
