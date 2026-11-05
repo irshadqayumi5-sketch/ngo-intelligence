@@ -189,7 +189,7 @@ st.markdown("""<div class="premium-hero">
   <div class="premium-kicker">Programme Monitoring · MEAL · Decision Support</div>
   <div class="premium-title">AI NGO Intelligence</div>
   <div class="premium-subtitle">A unified workspace for beneficiary insights, programme performance, data governance and evidence-based management reporting.</div>
-  <span class="premium-chip">V22.0 · PREMIUM INTERFACE</span>
+  <span class="premium-chip">V23.0 · PREMIUM DESIGN</span>
 </div>""", unsafe_allow_html=True)
 st.caption("Evidence-led analytics • Human-reviewed recommendations • Privacy-conscious reporting. Descriptive patterns do not establish causes; experimental model estimates must not determine assistance eligibility.")
 
