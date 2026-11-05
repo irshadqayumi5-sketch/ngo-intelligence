@@ -1259,14 +1259,17 @@ def call_openai_data_question(api_key, model, question, payload):
     return answer
 
 with st.sidebar:
-    st.markdown("""<div style="padding:8px 4px 16px 4px;">
+   st.markdown("""<div style="padding:8px 4px 16px 4px;">
 <div style="font-size:.68rem;letter-spacing:.18em;font-weight:800;color:#8DE5DA;text-transform:uppercase;">Workspace</div>
 <div style="font-size:1.24rem;font-weight:820;color:white;letter-spacing:-.03em;margin-top:5px;">AI NGO <span style="color:#8DE5DA;">INTELLIGENCE</span></div>
 <div style="font-size:.77rem;color:#BBD0DE;margin-top:5px;">Monitoring &amp; management suite</div>
 </div>""", unsafe_allow_html=True)
+
     st.markdown("<div style='font-size:.7rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:#8EA9BB;margin:4px 0 6px;'>Navigation</div>", unsafe_allow_html=True)
+
     section = st.radio("Open section", ["Executive Dashboard", "Priority Ranking", "Programme Performance", "Early Warning & Narrative", "Insights & Action Plan", "Province & Activity", "Data Quality", "Data Governance & Audit", "Generate Reports", "Ask Your Data", "Report Studio", "Indicator Tracker", "AI-Assisted Report Drafting", "Trends & ML Risk"])
- uploaded = None
+
+    uploaded = None
 
 try:
     raw, source = load_workbook(uploaded)
