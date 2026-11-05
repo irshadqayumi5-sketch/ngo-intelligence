@@ -1266,8 +1266,7 @@ with st.sidebar:
 </div>""", unsafe_allow_html=True)
     st.markdown("<div style='font-size:.7rem;font-weight:750;letter-spacing:.12em;text-transform:uppercase;color:#8EA9BB;margin:4px 0 6px;'>Navigation</div>", unsafe_allow_html=True)
     section = st.radio("Open section", ["Executive Dashboard", "Priority Ranking", "Programme Performance", "Early Warning & Narrative", "Insights & Action Plan", "Province & Activity", "Data Quality", "Data Governance & Audit", "Generate Reports", "Ask Your Data", "Report Studio", "Indicator Tracker", "AI-Assisted Report Drafting", "Trends & ML Risk"])
-    uploaded = st.file_uploader("Optional: upload an Excel workbook", type=["xlsx"])
-    st.caption("Uploaded workbooks are used for this session only.")
+ uploaded = None
 
 try:
     raw, source = load_workbook(uploaded)
