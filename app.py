@@ -67,6 +67,70 @@ p, li { line-height:1.58; }
 .section-intro { color:var(--muted); font-size:.91rem; margin-top:-.35rem; margin-bottom:1rem; }
 .small-note { color:var(--muted); font-size:.8rem; }
 @media (max-width: 700px) { .premium-hero { padding:22px 20px; border-radius:16px; } .premium-title {font-size:1.55rem;} .block-container {padding-left:1rem;padding-right:1rem;} }
+/* V23.0 PREMIUM DESIGN ENHANCEMENTS */
+
+/* Main content */
+.block-container {
+    max-width: 1680px;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+/* KPI Cards */
+[data-testid="stMetric"] {
+    background: linear-gradient(145deg, #FFFFFF, #F7FBFD);
+    border: 1px solid #DCE8EF;
+    border-radius: 18px;
+    padding: 22px 20px;
+    box-shadow: 0 7px 22px rgba(16, 36, 58, 0.07);
+    transition: all 0.25s ease;
+}
+
+[data-testid="stMetric"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(16, 36, 58, 0.12);
+}
+
+/* Headings */
+h1 {
+    font-weight: 850 !important;
+}
+
+h2 {
+    padding-bottom: 9px;
+    border-bottom: 2px solid #DCE8EF;
+}
+
+/* Buttons */
+.stButton > button,
+.stDownloadButton > button {
+    border-radius: 11px;
+    min-height: 42px;
+    font-weight: 700;
+}
+
+/* Charts */
+[data-testid="stPlotlyChart"] {
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 7px 22px rgba(16, 36, 58, 0.06);
+}
+
+/* Tables */
+[data-testid="stDataFrame"] {
+    border-radius: 14px;
+    border: 1px solid #DCE8EF;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    box-shadow: 5px 0 20px rgba(16, 36, 58, 0.10);
+}
+
+/* Section spacing */
+div[data-testid="stVerticalBlock"] {
+    gap: 1rem;
+}
 </style>
 """, unsafe_allow_html=True)
 st.markdown("""<div class="premium-hero">
